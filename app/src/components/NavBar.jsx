@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { AiOutlineHome } from "react-icons/ai"
-import { HiOutlineCollection } from "react-icons/hi"
-
-import Logo from "@/assets/logo.svg"
+import { BiTrendingUp } from "react-icons/bi"
 
 const MENU = [
   { title: "Home", to: "/home", logo: <AiOutlineHome className="h-6 w-6" /> },
-  { title: "Dummy", to: "/dummy", logo: <HiOutlineCollection className="h-6 w-6" /> }
+  { title: "Tendances", to: "/trends", logo: <BiTrendingUp className="h-6 w-6" /> }
 ]
 
 const Navbar = () => {
@@ -21,7 +19,6 @@ const Navbar = () => {
   return (
     <div className="h-screen bg-primary">
       <div className="flex flex-col gap-5 justify-between p-2 pl-4">
-        <img className="w-3/4 mt-5 mb-16 mr-5" alt="logo" src={Logo} />
         <div>
           {MENU.map((menu, index) => (
             <Link

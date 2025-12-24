@@ -2,10 +2,8 @@ import React, { useState, useEffect, useRef } from "react"
 import { MdCheckBoxOutlineBlank, MdCheckBox } from "react-icons/md"
 import { HiChevronDown, HiChevronUp } from "react-icons/hi2"
 import { HiMagnifyingGlass } from "react-icons/hi2"
-import { useTranslation } from "i18next"
 
 function MultiSelect({ id, options, values, onSelectedChange, placeholder = "Select an option" }) {
-  const { t } = useTranslation("components")
   const [selectedOptions, setSelectedOptions] = useState([])
   const [isOpen, setIsOpen] = useState(false)
   const ref = useRef(null)
@@ -72,7 +70,7 @@ function MultiSelect({ id, options, values, onSelectedChange, placeholder = "Sel
                 </div>
                 <input
                   className="block w-full rounded-md border-gray-300 pl-10 focus:border-indigo-500 focus:ring-indigo-500 md:text-sm"
-                  placeholder={t("search")}
+                  placeholder="Rechercher..."
                   value={search}
                   onChange={e => {
                     e.persist()

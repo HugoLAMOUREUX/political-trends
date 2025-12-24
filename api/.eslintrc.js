@@ -3,21 +3,22 @@ module.exports = {
     browser: true,
     commonjs: true,
     es2021: true,
+    node: true
   },
   extends: "eslint:recommended",
   overrides: [
     {
       env: {
-        node: true,
+        node: true
       },
       files: [".eslintrc.{js,cjs}"],
       parserOptions: {
-        sourceType: "script",
-      },
-    },
+        sourceType: "script"
+      }
+    }
   ],
   parserOptions: {
-    ecmaVersion: "latest",
+    ecmaVersion: "latest"
   },
   rules: {
     "no-unused-vars": "off",
@@ -30,6 +31,6 @@ module.exports = {
     "comma-dangle": "off",
     "arrow-parens": "off",
     "no-multiple-empty-lines": "off",
-    "no-prototype-builtins": "off",
-  },
-};
+    "no-prototype-builtins": "off"
+  }
+}
