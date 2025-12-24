@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { Line } from "react-chartjs-2"
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js"
 import toast from "react-hot-toast"
+import { HiChevronDown, HiChevronUp } from "react-icons/hi2"
 import api from "@/services/api"
 import MultiSelect from "@/components/MultiSelect"
 
@@ -19,6 +20,7 @@ const POLITICAL_COLORS = {
 
 export default function TrendsChart() {
   const [loading, setLoading] = useState(false)
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [filterOptions, setFilterOptions] = useState({
     parties: [],
     nuances: [],
@@ -219,150 +221,162 @@ export default function TrendsChart() {
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6">Tendances Politiques</h1>
-
-      {/* Filters */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Filtres</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Election Types */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Types d'élection</label>
-            <MultiSelect
-              id="election-types"
-              options={filterOptions.election_types.map(type => ({ value: type, label: type }))}
-              values={filters.selectedElectionTypes}
-              onSelectedChange={value => updateFilter("selectedElectionTypes", value)}
-              placeholder="Tous les types"
-            />
-          </div>
-
-          {/* Date Range */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Date de début</label>
-            <input type="date" className="w-full border rounded-md p-2" value={filters.startDate} onChange={e => updateFilter("startDate", e.target.value)} />
-            <label className="block text-sm font-medium mb-2 mt-2">Date de fin</label>
-            <input type="date" className="w-full border rounded-md p-2" value={filters.endDate} onChange={e => updateFilter("endDate", e.target.value)} />
-          </div>
-
-          {/* Group By */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Grouper par</label>
-            <select className="w-full border rounded-md p-2" value={filters.groupBy} onChange={e => updateFilter("groupBy", e.target.value)}>
-              <option value="nuance">Nuance</option>
-              <option value="party">Parti</option>
-              <option value="candidate_name">Candidat</option>
-            </select>
-          </div>
-
-          {/* Nuances */}
-          {filters.groupBy === "nuance" && (
-            <div>
-              <label className="block text-sm font-medium mb-2">Nuances</label>
-              <MultiSelect
-                id="nuances"
-                options={filterOptions.nuances.map(nuance => ({ value: nuance, label: nuance }))}
-                values={filters.selectedNuances}
-                onSelectedChange={value => updateFilter("selectedNuances", value)}
-                placeholder="Toutes les nuances"
-              />
-            </div>
-          )}
-
-          {/* Parties */}
-          {filters.groupBy === "party" && (
-            <div>
-              <label className="block text-sm font-medium mb-2">Partis</label>
-              <MultiSelect
-                id="parties"
-                options={filterOptions.parties.map(party => ({ value: party, label: party }))}
-                values={filters.selectedParties}
-                onSelectedChange={value => updateFilter("selectedParties", value)}
-                placeholder="Tous les partis"
-              />
-            </div>
-          )}
-
-          {/* Candidates */}
-          {filters.groupBy === "candidate_name" && (
-            <div>
-              <label className="block text-sm font-medium mb-2">Candidats</label>
-              <MultiSelect
-                id="candidates"
-                options={filterOptions.candidates.map(candidate => ({ value: candidate, label: candidate }))}
-                values={filters.selectedCandidates}
-                onSelectedChange={value => updateFilter("selectedCandidates", value)}
-                placeholder="Tous les candidats"
-              />
-            </div>
-          )}
-
-          {/* Location Level */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Niveau géographique</label>
-            <select className="w-full border rounded-md p-2" value={filters.level} onChange={e => updateFilter("level", e.target.value)}>
-              <option value="national">National</option>
-              <option value="municipal">Municipal</option>
-            </select>
-          </div>
-
-          {/* City */}
-          {filters.level === "municipal" && (
-            <div>
-              <label className="block text-sm font-medium mb-2">Ville</label>
-              <select className="w-full border rounded-md p-2" value={filters.city} onChange={e => updateFilter("city", e.target.value)}>
-                <option value="">-- Sélectionner une ville --</option>
-                {filterOptions.cities.map(cityName => (
-                  <option key={cityName} value={cityName}>
-                    {cityName}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+    <div className="p-6 h-full flex flex-col">
+      {/* Filters on the right */}
+      <div className="flex items-center justify-end gap-3 mb-4">
+        {/* Main Filters */}
+        <div className="w-56">
+          <MultiSelect
+            id="election-types"
+            options={filterOptions.election_types.map(type => ({ value: type, label: type }))}
+            values={filters.selectedElectionTypes}
+            onSelectedChange={value => updateFilter("selectedElectionTypes", value)}
+            placeholder="Types d'élection"
+          />
         </div>
 
-        <button onClick={fetchChartData} disabled={loading} className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400">
-          {loading ? "Chargement..." : "Afficher le graphique"}
+        <div className="w-44">
+          <select className="w-full border rounded-md p-2 text-sm" value={filters.groupBy} onChange={e => updateFilter("groupBy", e.target.value)}>
+            <option value="nuance">Par nuance</option>
+            <option value="party">Par parti</option>
+            <option value="candidate_name">Par candidat</option>
+          </select>
+        </div>
+
+        {/* Advanced Filters Toggle */}
+        <button
+          onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+          className="flex items-center gap-1 px-3 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium border border-blue-200 rounded-md hover:bg-blue-50 whitespace-nowrap"
+        >
+          {showAdvancedFilters ? <HiChevronUp className="h-4 w-4" /> : <HiChevronDown className="h-4 w-4" />}
+          Filtres
+        </button>
+
+        {/* Apply button */}
+        <button
+          onClick={fetchChartData}
+          disabled={loading}
+          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 font-medium text-sm whitespace-nowrap"
+        >
+          {loading ? "..." : "Afficher"}
         </button>
       </div>
 
-      {/* Legend */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
-        <h3 className="text-sm font-semibold mb-2">Légende</h3>
-        <div className="flex flex-wrap gap-4 text-sm">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-gray-400"></div>
-            <span>Petits points = Sondages</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-gray-400"></div>
-            <span>Gros points = Résultats officiels</span>
+      {/* Advanced Filters Panel */}
+      {showAdvancedFilters && (
+        <div className="bg-white rounded-lg shadow p-4 mb-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {/* Date Range */}
+            <div>
+              <label className="block text-xs font-medium mb-1">Date début</label>
+              <input type="date" className="w-full border rounded-md p-1.5 text-xs" value={filters.startDate} onChange={e => updateFilter("startDate", e.target.value)} />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium mb-1">Date fin</label>
+              <input type="date" className="w-full border rounded-md p-1.5 text-xs" value={filters.endDate} onChange={e => updateFilter("endDate", e.target.value)} />
+            </div>
+
+            {/* Nuances */}
+            {filters.groupBy === "nuance" && (
+              <div className="col-span-2">
+                <label className="block text-xs font-medium mb-1">Nuances</label>
+                <MultiSelect
+                  id="nuances"
+                  options={filterOptions.nuances.map(nuance => ({ value: nuance, label: nuance }))}
+                  values={filters.selectedNuances}
+                  onSelectedChange={value => updateFilter("selectedNuances", value)}
+                  placeholder="Toutes"
+                />
+              </div>
+            )}
+
+            {/* Parties */}
+            {filters.groupBy === "party" && (
+              <div className="col-span-2">
+                <label className="block text-xs font-medium mb-1">Partis</label>
+                <MultiSelect
+                  id="parties"
+                  options={filterOptions.parties.map(party => ({ value: party, label: party }))}
+                  values={filters.selectedParties}
+                  onSelectedChange={value => updateFilter("selectedParties", value)}
+                  placeholder="Tous"
+                />
+              </div>
+            )}
+
+            {/* Candidates */}
+            {filters.groupBy === "candidate_name" && (
+              <div className="col-span-2">
+                <label className="block text-xs font-medium mb-1">Candidats</label>
+                <MultiSelect
+                  id="candidates"
+                  options={filterOptions.candidates.map(candidate => ({ value: candidate, label: candidate }))}
+                  values={filters.selectedCandidates}
+                  onSelectedChange={value => updateFilter("selectedCandidates", value)}
+                  placeholder="Tous"
+                />
+              </div>
+            )}
+
+            {/* Location Level */}
+            <div>
+              <label className="block text-xs font-medium mb-1">Géographie</label>
+              <select className="w-full border rounded-md p-1.5 text-xs" value={filters.level} onChange={e => updateFilter("level", e.target.value)}>
+                <option value="national">National</option>
+                <option value="municipal">Municipal</option>
+              </select>
+            </div>
+
+            {/* City */}
+            {filters.level === "municipal" && (
+              <div>
+                <label className="block text-xs font-medium mb-1">Ville</label>
+                <select className="w-full border rounded-md p-1.5 text-xs" value={filters.city} onChange={e => updateFilter("city", e.target.value)}>
+                  <option value="">Sélectionner</option>
+                  {filterOptions.cities.map(cityName => (
+                    <option key={cityName} value={cityName}>
+                      {cityName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         </div>
-        <div className="flex flex-wrap gap-4 text-sm mt-2">
+      )}
+
+      {/* Legend - compact inline */}
+      <div className="bg-white rounded-lg shadow px-4 py-2 mb-4">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+            <span>Sondages</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-gray-400"></div>
+            <span>Résultats officiels</span>
+          </div>
           {Object.entries(POLITICAL_COLORS).map(([nuance, color]) => (
-            <div key={nuance} className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded" style={{ backgroundColor: color }}></div>
+            <div key={nuance} className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded" style={{ backgroundColor: color }}></div>
               <span>{nuance}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Chart */}
+      {/* Chart - takes remaining space */}
       {chartData && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="h-96">
+        <div className="bg-white rounded-lg shadow p-6 flex-1 min-h-0">
+          <div className="h-full">
             <Line data={chartData} options={chartOptions} />
           </div>
         </div>
       )}
 
       {!chartData && !loading && (
-        <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">Sélectionnez des filtres et cliquez sur "Afficher le graphique" pour voir les tendances</div>
+        <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500 flex-1">Sélectionnez des filtres et cliquez sur "Afficher" pour voir les tendances</div>
       )}
     </div>
   )
