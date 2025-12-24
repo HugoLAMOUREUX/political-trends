@@ -70,19 +70,28 @@ router.post("/search", async (req, res) => {
 
     const groupByField = group_by || "party";
 
-    // Aggregation pipeline - include nuance in response
+    // Build group _id based on groupBy field
+    const groupId = {
+      date: "$date",
+      type: "$type",
+      election_id: "$election_id", // Add election_id to group per election
+    };
+
+    // Only add the groupBy field if it's not nuance (since nuance is always included)
+    if (groupByField !== "nuance") {
+      groupId[groupByField] = `$${groupByField}`;
+    }
+
+    // Always add nuance for coloring
+    groupId.nuance = "$nuance";
+
+    // Aggregation pipeline
     const pipeline = [
       { $match: matchQuery },
       {
         $group: {
-          _id: {
-            date: "$date",
-            type: "$type",
-            [groupByField]: `$${groupByField}`,
-            nuance: "$nuance",
-          },
-          avg_value: { $avg: "$value" },
-          count: { $sum: 1 },
+          _id: groupId,
+          sum_value: { $sum: "$value" }, // Use SUM instead of AVG when grouping by nuance
         },
       },
       { $sort: { "_id.date": 1 } },

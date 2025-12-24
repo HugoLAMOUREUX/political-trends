@@ -88,7 +88,7 @@ export default function TrendsChart() {
     const groupedData = {}
 
     data.forEach(item => {
-      const key = item._id[groupBy]
+      const key = groupBy === "nuance" ? item._id.nuance : item._id[groupBy]
       const date = new Date(item._id.date).toLocaleDateString("fr-FR")
       const type = item._id.type
       const nuance = item._id.nuance
@@ -102,9 +102,9 @@ export default function TrendsChart() {
       }
 
       if (type === "poll") {
-        groupedData[key].polls.push({ date, value: item.avg_value })
+        groupedData[key].polls.push({ date, value: item.sum_value })
       } else {
-        groupedData[key].results.push({ date, value: item.avg_value })
+        groupedData[key].results.push({ date, value: item.sum_value })
       }
     })
 
