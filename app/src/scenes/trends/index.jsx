@@ -27,18 +27,25 @@ export default function TrendsChart() {
     election_types: []
   })
 
-  // Filters state
-  const [selectedElectionTypes, setSelectedElectionTypes] = useState([])
-  const [startDate, setStartDate] = useState("")
-  const [endDate, setEndDate] = useState("")
-  const [selectedParties, setSelectedParties] = useState([])
-  const [selectedNuances, setSelectedNuances] = useState([])
-  const [selectedCandidates, setSelectedCandidates] = useState([])
-  const [level, setLevel] = useState("national")
-  const [city, setCity] = useState("")
-  const [groupBy, setGroupBy] = useState("nuance")
+  // Single filters state object
+  const [filters, setFilters] = useState({
+    selectedElectionTypes: [],
+    startDate: "",
+    endDate: "",
+    selectedParties: [],
+    selectedNuances: [],
+    selectedCandidates: [],
+    level: "national",
+    city: "",
+    groupBy: "nuance"
+  })
 
   const [chartData, setChartData] = useState(null)
+
+  // Helper function to update filters
+  const updateFilter = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }))
+  }
 
   // Fetch filter options on mount
   useEffect(() => {
@@ -60,15 +67,15 @@ export default function TrendsChart() {
     setLoading(true)
     try {
       const body = {
-        election_types: selectedElectionTypes.length > 0 ? selectedElectionTypes.map(e => e.value) : undefined,
-        start_date: startDate || undefined,
-        end_date: endDate || undefined,
-        parties: selectedParties.length > 0 ? selectedParties.map(p => p.value) : undefined,
-        nuances: selectedNuances.length > 0 ? selectedNuances.map(n => n.value) : undefined,
-        candidates: selectedCandidates.length > 0 ? selectedCandidates.map(c => c.value) : undefined,
-        level: level || undefined,
-        city: city || undefined,
-        group_by: groupBy
+        election_types: filters.selectedElectionTypes.length > 0 ? filters.selectedElectionTypes.map(e => e.value) : undefined,
+        start_date: filters.startDate || undefined,
+        end_date: filters.endDate || undefined,
+        parties: filters.selectedParties.length > 0 ? filters.selectedParties.map(p => p.value) : undefined,
+        nuances: filters.selectedNuances.length > 0 ? filters.selectedNuances.map(n => n.value) : undefined,
+        candidates: filters.selectedCandidates.length > 0 ? filters.selectedCandidates.map(c => c.value) : undefined,
+        level: filters.level || undefined,
+        city: filters.city || undefined,
+        group_by: filters.groupBy
       }
 
       const { ok, data } = await api.post("/datapoint/search", body)
@@ -88,7 +95,7 @@ export default function TrendsChart() {
     const groupedData = {}
 
     data.forEach(item => {
-      const key = groupBy === "nuance" ? item._id.nuance : item._id[groupBy]
+      const key = filters.groupBy === "nuance" ? item._id.nuance : item._id[filters.groupBy]
       const date = new Date(item._id.date).toLocaleDateString("fr-FR")
       const type = item._id.type
       const nuance = item._id.nuance
@@ -131,7 +138,7 @@ export default function TrendsChart() {
     const datasets = []
 
     Object.keys(groupedData).forEach(key => {
-      const color = groupBy === "nuance" ? POLITICAL_COLORS[key] || "#808080" : POLITICAL_COLORS[groupedData[key].nuance] || "#808080"
+      const color = filters.groupBy === "nuance" ? POLITICAL_COLORS[key] || "#808080" : POLITICAL_COLORS[groupedData[key].nuance] || "#808080"
 
       // Combine polls and results in one continuous line
       const combinedData = sortedDates.map(date => {
@@ -225,8 +232,8 @@ export default function TrendsChart() {
             <MultiSelect
               id="election-types"
               options={filterOptions.election_types.map(type => ({ value: type, label: type }))}
-              values={selectedElectionTypes}
-              onSelectedChange={setSelectedElectionTypes}
+              values={filters.selectedElectionTypes}
+              onSelectedChange={value => updateFilter("selectedElectionTypes", value)}
               placeholder="Tous les types"
             />
           </div>
@@ -234,15 +241,15 @@ export default function TrendsChart() {
           {/* Date Range */}
           <div>
             <label className="block text-sm font-medium mb-2">Date de début</label>
-            <input type="date" className="w-full border rounded-md p-2" value={startDate} onChange={e => setStartDate(e.target.value)} />
+            <input type="date" className="w-full border rounded-md p-2" value={filters.startDate} onChange={e => updateFilter("startDate", e.target.value)} />
             <label className="block text-sm font-medium mb-2 mt-2">Date de fin</label>
-            <input type="date" className="w-full border rounded-md p-2" value={endDate} onChange={e => setEndDate(e.target.value)} />
+            <input type="date" className="w-full border rounded-md p-2" value={filters.endDate} onChange={e => updateFilter("endDate", e.target.value)} />
           </div>
 
           {/* Group By */}
           <div>
             <label className="block text-sm font-medium mb-2">Grouper par</label>
-            <select className="w-full border rounded-md p-2" value={groupBy} onChange={e => setGroupBy(e.target.value)}>
+            <select className="w-full border rounded-md p-2" value={filters.groupBy} onChange={e => updateFilter("groupBy", e.target.value)}>
               <option value="nuance">Nuance</option>
               <option value="party">Parti</option>
               <option value="candidate_name">Candidat</option>
@@ -250,42 +257,42 @@ export default function TrendsChart() {
           </div>
 
           {/* Nuances */}
-          {groupBy === "nuance" && (
+          {filters.groupBy === "nuance" && (
             <div>
               <label className="block text-sm font-medium mb-2">Nuances</label>
               <MultiSelect
                 id="nuances"
                 options={filterOptions.nuances.map(nuance => ({ value: nuance, label: nuance }))}
-                values={selectedNuances}
-                onSelectedChange={setSelectedNuances}
+                values={filters.selectedNuances}
+                onSelectedChange={value => updateFilter("selectedNuances", value)}
                 placeholder="Toutes les nuances"
               />
             </div>
           )}
 
           {/* Parties */}
-          {groupBy === "party" && (
+          {filters.groupBy === "party" && (
             <div>
               <label className="block text-sm font-medium mb-2">Partis</label>
               <MultiSelect
                 id="parties"
                 options={filterOptions.parties.map(party => ({ value: party, label: party }))}
-                values={selectedParties}
-                onSelectedChange={setSelectedParties}
+                values={filters.selectedParties}
+                onSelectedChange={value => updateFilter("selectedParties", value)}
                 placeholder="Tous les partis"
               />
             </div>
           )}
 
           {/* Candidates */}
-          {groupBy === "candidate_name" && (
+          {filters.groupBy === "candidate_name" && (
             <div>
               <label className="block text-sm font-medium mb-2">Candidats</label>
               <MultiSelect
                 id="candidates"
                 options={filterOptions.candidates.map(candidate => ({ value: candidate, label: candidate }))}
-                values={selectedCandidates}
-                onSelectedChange={setSelectedCandidates}
+                values={filters.selectedCandidates}
+                onSelectedChange={value => updateFilter("selectedCandidates", value)}
                 placeholder="Tous les candidats"
               />
             </div>
@@ -294,17 +301,17 @@ export default function TrendsChart() {
           {/* Location Level */}
           <div>
             <label className="block text-sm font-medium mb-2">Niveau géographique</label>
-            <select className="w-full border rounded-md p-2" value={level} onChange={e => setLevel(e.target.value)}>
+            <select className="w-full border rounded-md p-2" value={filters.level} onChange={e => updateFilter("level", e.target.value)}>
               <option value="national">National</option>
               <option value="municipal">Municipal</option>
             </select>
           </div>
 
           {/* City */}
-          {level === "municipal" && (
+          {filters.level === "municipal" && (
             <div>
               <label className="block text-sm font-medium mb-2">Ville</label>
-              <select className="w-full border rounded-md p-2" value={city} onChange={e => setCity(e.target.value)}>
+              <select className="w-full border rounded-md p-2" value={filters.city} onChange={e => updateFilter("city", e.target.value)}>
                 <option value="">-- Sélectionner une ville --</option>
                 {filterOptions.cities.map(cityName => (
                   <option key={cityName} value={cityName}>
