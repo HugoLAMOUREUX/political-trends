@@ -50,6 +50,7 @@ export default function TrendsChart() {
   // Fetch filter options on mount
   useEffect(() => {
     fetchFilterOptions()
+    fetchChartData()
   }, [])
 
   async function fetchFilterOptions() {
