@@ -65,6 +65,8 @@ selon les filtres définis.
 ### Résultats électoraux
 
 - **data.gouv.fr** : Données officielles des résultats électoraux
+  - Résultats agrégés de toutes les élections : https://www.data.gouv.fr/datasets/donnees-des-elections-agregees
+  - Résultats pour chaque élection (national, communal, etc.) : https://www.data.gouv.fr/pages/donnees-des-elections-et-referendums
 - **Scraping** : Sites officiels et sources complémentaires
 
 ### Sondages
