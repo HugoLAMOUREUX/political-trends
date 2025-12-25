@@ -28,7 +28,7 @@ export default function App() {
           <Route path="/auth/*" element={<Auth />} />
         </Route>
         <Route element={<UserLayout />}>
-          <Route path="/" element={<Navigate to="/elections" replace />} />
+          <Route path="/" element={<Navigate to="/trends" replace />} />
           <Route path="/elections" element={<Elections />} />
           <Route path="/account" element={<Account />} />
           <Route path="/trends" element={<Trends />} />

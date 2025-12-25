@@ -10,8 +10,8 @@ import useStore from "@/services/store"
 import api from "@/services/api"
 
 const MENU = [
-  { title: "Élections", to: "/elections", logo: <MdHowToVote className="h-6 w-6" /> },
-  { title: "Tendances", to: "/trends", logo: <BiTrendingUp className="h-6 w-6" /> }
+  { title: "Tendances", to: "/trends", logo: <BiTrendingUp className="h-6 w-6" /> },
+  { title: "Élections", to: "/elections", logo: <MdHowToVote className="h-6 w-6" /> }
 ]
 
 const Navbar = () => {

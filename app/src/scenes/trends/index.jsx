@@ -31,7 +31,7 @@ export default function TrendsChart() {
 
   const [filters, setFilters] = useState({
     selectedElectionTypes: [],
-    selectedTours: [],
+    selectedTours: [{ value: 1, label: "1er tour" }],
     startDate: "",
     endDate: "",
     selectedParties: [],
