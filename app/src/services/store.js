@@ -5,7 +5,10 @@ const store = create(set => ({
   setUser: user => set(() => ({ user })),
 
   organization: null,
-  setOrganization: organization => set(() => ({ organization }))
+  setOrganization: organization => set(() => ({ organization })),
+
+  isNavCollapsed: false,
+  setNavCollapsed: isNavCollapsed => set(() => ({ isNavCollapsed }))
 }))
 
 export default store

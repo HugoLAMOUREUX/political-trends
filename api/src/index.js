@@ -35,6 +35,7 @@ app.use("/user", require("./controllers/user"));
 app.use("/admin", require("./controllers/admin"));
 app.use("/file", require("./controllers/file"));
 app.use("/datapoint", require("./controllers/datapoint"));
+app.use("/election", require("./controllers/election"));
 
 setupErrorHandler(app);
 require("./services/passport")(app);

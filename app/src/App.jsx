@@ -4,12 +4,11 @@ import { Toaster } from "react-hot-toast"
 import * as Sentry from "@sentry/browser"
 
 import Auth from "@/scenes/auth"
-import Home from "@/scenes/home"
+import Elections from "@/scenes/elections"
 import Account from "@/scenes/account"
 import Trends from "@/scenes/trends"
 
 import Navbar from "@/components/NavBar"
-import TopBar from "@/components/TopBar"
 import Loader from "@/components/loader"
 
 import useStore from "@/services/store"
@@ -29,7 +28,8 @@ export default function App() {
           <Route path="/auth/*" element={<Auth />} />
         </Route>
         <Route element={<UserLayout />}>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Navigate to="/elections" replace />} />
+          <Route path="/elections" element={<Elections />} />
           <Route path="/account" element={<Account />} />
           <Route path="/trends" element={<Trends />} />
         </Route>
@@ -53,7 +53,7 @@ const AuthLayout = () => {
 
 const UserLayout = () => {
   const [loading, setLoading] = useState(true)
-  const { user, setUser } = useStore()
+  const { user, setUser, isNavCollapsed } = useStore()
 
   async function fetchUser() {
     try {
@@ -81,14 +81,9 @@ const UserLayout = () => {
   if (!user) return <Navigate to="/auth" replace={true} />
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden lg:flex-row">
-      <nav className="w-56 absolute left-0 top-0">
-        <Navbar />
-      </nav>
-      <main className="ml-56 h-full w-full overflow-auto bg-gray-50">
-        <div className="h-14 border-b border-secondary bg-white">
-          <TopBar />
-        </div>
+    <div className="flex h-screen overflow-hidden">
+      <Navbar />
+      <main className={`flex-1 h-full overflow-auto bg-gray-50 transition-all duration-300 ${isNavCollapsed ? "lg:ml-20" : "lg:ml-64"}`}>
         <Outlet />
       </main>
     </div>
