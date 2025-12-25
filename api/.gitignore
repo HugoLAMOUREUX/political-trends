@@ -3,3 +3,6 @@
 .env*
 !.env.example
 *.csv
+*.xlsx
+*.xls
+*.json

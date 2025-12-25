@@ -32,6 +32,7 @@ export default function TrendsChart() {
   // Single filters state object
   const [filters, setFilters] = useState({
     selectedElectionTypes: [],
+    selectedTours: [],
     startDate: "",
     endDate: "",
     selectedParties: [],
@@ -71,6 +72,7 @@ export default function TrendsChart() {
     try {
       const body = {
         election_types: filters.selectedElectionTypes.length > 0 ? filters.selectedElectionTypes.map(e => e.value) : undefined,
+        tours: filters.selectedTours.length > 0 ? filters.selectedTours.map(t => t.value) : undefined,
         start_date: filters.startDate || undefined,
         end_date: filters.endDate || undefined,
         parties: filters.selectedParties.length > 0 ? filters.selectedParties.map(p => p.value) : undefined,
@@ -112,9 +114,9 @@ export default function TrendsChart() {
       }
 
       if (type === "poll") {
-        groupedData[key].polls.push({ date, value: item.sum_value })
+        groupedData[key].polls.push({ date, value: item.sum_result_pourcentage_exprime })
       } else {
-        groupedData[key].results.push({ date, value: item.sum_value })
+        groupedData[key].results.push({ date, value: item.sum_result_pourcentage_exprime })
       }
     })
 
@@ -232,6 +234,19 @@ export default function TrendsChart() {
             values={filters.selectedElectionTypes}
             onSelectedChange={value => updateFilter("selectedElectionTypes", value)}
             placeholder="Types d'élection"
+          />
+        </div>
+
+        <div className="w-44">
+          <MultiSelect
+            id="tours"
+            options={[
+              { value: 1, label: "1er tour" },
+              { value: 2, label: "2ème tour" }
+            ]}
+            values={filters.selectedTours}
+            onSelectedChange={value => updateFilter("selectedTours", value)}
+            placeholder="Tous les tours"
           />
         </div>
 
