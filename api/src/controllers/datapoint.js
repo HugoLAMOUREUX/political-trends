@@ -49,15 +49,40 @@ router.post("/search", async (req, res) => {
     if (city) matchQuery.city = city;
     const groupByField = group_by || "party";
     const groupId = { date: "$date", type: "$type", election_id: "$election_id" };
+    // Only group polls by poll_id and hypothese to avoid summing multiple hypotheses/polls on same day
+    // For type="poll", include poll_id and hypothese in the group ID if present
+    // But we need a consistent group ID structure for $group.
+    // Instead of conditionally adding fields to _id (which might split results too much or too little),
+    // let's group by date/type/election_id + grouping field, AND calculate the average for polls on the same day?
+    // OR: The user issue is summing percentages > 100%.
+    // If we have multiple polls on the same day, we probably want to AVERAGE them, not sum them.
+    // If we have multiple hypotheses in the same poll, we should probably pick one or treat them as separate data points.
+
+    // Updated aggregation logic:
+    // 1. Match documents
+    // 2. Group by specific poll/hypothesis first to handle multiple hypotheses (though usually we filter by hypothesis if UI allowed it)
+    //    Actually, if we just want to avoid >100%, we should average the results for the same candidate on the same day.
+
     if (groupByField !== "nuance") groupId[groupByField] = `$${groupByField}`;
     groupId.nuance = "$nuance";
+
     const pipeline = [
       { $match: matchQuery },
       {
         $group: {
           _id: groupId,
-          sum_result_pourcentage_exprime: { $sum: "$result_pourcentage_exprime" },
+          // Use average for polls on the same day/group to avoid > 100% sums
+          // But for election results (type="result"), sum might be appropriate if we are aggregating sub-regions (not the case here with level=national usually)
+          // Let's use $avg for percentages to be safe for polls.
+          avg_result_pourcentage_exprime: { $avg: "$result_pourcentage_exprime" },
           sum_result_amount: { $sum: "$result_amount" },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          sum_result_pourcentage_exprime: "$avg_result_pourcentage_exprime", // Keep the name for frontend compatibility but map to avg
+          sum_result_amount: 1,
         },
       },
       { $sort: { "_id.date": 1 } },

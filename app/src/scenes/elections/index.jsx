@@ -108,46 +108,48 @@ export default function Elections() {
                 </div>
 
                 {/* Tour 2 */}
-                <div className="border-l-4 border-indigo-500 pl-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs font-semibold">2ème TOUR</div>
-                    <span className="text-sm text-gray-500">{formatDate(election.tour_2.date)}</span>
+                {election.tour_2 && (
+                  <div className="border-l-4 border-indigo-500 pl-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs font-semibold">2ème TOUR</div>
+                      <span className="text-sm text-gray-500">{formatDate(election.tour_2.date)}</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mt-3">
+                      <div className="flex items-start gap-2">
+                        <HiUsers className="h-5 w-5 text-gray-400 mt-0.5" />
+                        <div>
+                          <p className="text-xs text-gray-500">Inscrits</p>
+                          <p className="text-sm font-semibold text-gray-800">{formatNumber(election.tour_2.inscrits_amount)}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-2">
+                        <HiChartBar className="h-5 w-5 text-gray-400 mt-0.5" />
+                        <div>
+                          <p className="text-xs text-gray-500">Participation</p>
+                          <p className="text-sm font-semibold text-gray-800">{election.tour_2.votants_pourcentage_inscrits.toFixed(2)}%</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-2">
+                        <HiChartBar className="h-5 w-5 text-gray-400 mt-0.5" />
+                        <div>
+                          <p className="text-xs text-gray-500">Abstention</p>
+                          <p className="text-sm font-semibold text-gray-800">{election.tour_2.abstentions_pourcentage_inscrits.toFixed(2)}%</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-2">
+                        <HiChartBar className="h-5 w-5 text-gray-400 mt-0.5" />
+                        <div>
+                          <p className="text-xs text-gray-500">Blancs/Nuls</p>
+                          <p className="text-sm font-semibold text-gray-800">{election.tour_2.blancs_pourcentage_inscrits.toFixed(2)}%</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-4 mt-3">
-                    <div className="flex items-start gap-2">
-                      <HiUsers className="h-5 w-5 text-gray-400 mt-0.5" />
-                      <div>
-                        <p className="text-xs text-gray-500">Inscrits</p>
-                        <p className="text-sm font-semibold text-gray-800">{formatNumber(election.tour_2.inscrits_amount)}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-2">
-                      <HiChartBar className="h-5 w-5 text-gray-400 mt-0.5" />
-                      <div>
-                        <p className="text-xs text-gray-500">Participation</p>
-                        <p className="text-sm font-semibold text-gray-800">{election.tour_2.votants_pourcentage_inscrits.toFixed(2)}%</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-2">
-                      <HiChartBar className="h-5 w-5 text-gray-400 mt-0.5" />
-                      <div>
-                        <p className="text-xs text-gray-500">Abstention</p>
-                        <p className="text-sm font-semibold text-gray-800">{election.tour_2.abstentions_pourcentage_inscrits.toFixed(2)}%</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-2">
-                      <HiChartBar className="h-5 w-5 text-gray-400 mt-0.5" />
-                      <div>
-                        <p className="text-xs text-gray-500">Blancs/Nuls</p>
-                        <p className="text-sm font-semibold text-gray-800">{election.tour_2.blancs_pourcentage_inscrits.toFixed(2)}%</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           ))}

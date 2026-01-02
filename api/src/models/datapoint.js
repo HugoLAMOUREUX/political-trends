@@ -26,6 +26,8 @@ const DataPointSchema = new mongoose.Schema(
     result_pourcentage_inscrits: { type: Number, default: 0, min: 0, max: 100 },
     result_amount: { type: Number, default: 0, min: 0 },
     poll_source: { type: String, default: null },
+    poll_id: { type: String, default: null, index: true },
+    hypothese: { type: String, default: null },
   },
   { timestamps: true },
 );

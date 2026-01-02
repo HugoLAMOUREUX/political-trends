@@ -142,7 +142,14 @@ export default function TrendsChart() {
       const combinedData = sortedDates.map(date => {
         const poll = groupedData[key].polls.find(p => p.date === date)
         const result = groupedData[key].results.find(r => r.date === date)
-        return result ? result.value : poll ? poll.value : null
+
+        // If we have both, prefer result or average? Usually date is unique per type.
+        // But if we have multiple polls on the same date (which should be handled by backend average now),
+        // we might still have a poll and a result on same date if data is weird.
+        // Let's just take result if available, else poll.
+        if (result) return result.value
+        if (poll) return poll.value
+        return null
       })
 
       const pointRadius = sortedDates.map(date => {
@@ -296,7 +303,7 @@ export default function TrendsChart() {
               className="flex items-center gap-2 px-4 py-2.5 text-sm text-blue-600 hover:text-blue-700 font-medium border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors whitespace-nowrap"
             >
               <HiAdjustmentsHorizontal className="h-5 w-5" />
-              Filtres avancés
+              Filtres
               {showAdvancedFilters ? <HiChevronUp className="h-4 w-4" /> : <HiChevronDown className="h-4 w-4" />}
             </button>
 
@@ -309,7 +316,7 @@ export default function TrendsChart() {
             </button>
           </div>
 
-          {/* Advanced Filters Panel */}
+          {/* Advanced Filters Panel - Always visible if showAdvancedFilters is true, but simplified logic */}
           {showAdvancedFilters && (
             <div className="pt-4 border-t border-gray-200">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
