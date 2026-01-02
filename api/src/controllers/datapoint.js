@@ -47,46 +47,64 @@ router.post("/search", async (req, res) => {
     if (candidates && candidates.length > 0) matchQuery.candidate_name = { $in: candidates };
     if (level) matchQuery.level = level;
     if (city) matchQuery.city = city;
+
     const groupByField = group_by || "party";
-    const groupId = { date: "$date", type: "$type", election_id: "$election_id" };
-    // Only group polls by poll_id and hypothese to avoid summing multiple hypotheses/polls on same day
-    // For type="poll", include poll_id and hypothese in the group ID if present
-    // But we need a consistent group ID structure for $group.
-    // Instead of conditionally adding fields to _id (which might split results too much or too little),
-    // let's group by date/type/election_id + grouping field, AND calculate the average for polls on the same day?
-    // OR: The user issue is summing percentages > 100%.
-    // If we have multiple polls on the same day, we probably want to AVERAGE them, not sum them.
-    // If we have multiple hypotheses in the same poll, we should probably pick one or treat them as separate data points.
 
-    // Updated aggregation logic:
-    // 1. Match documents
-    // 2. Group by specific poll/hypothesis first to handle multiple hypotheses (though usually we filter by hypothesis if UI allowed it)
-    //    Actually, if we just want to avoid >100%, we should average the results for the same candidate on the same day.
+    // 1st Grouping Key: Includes poll_id/hypothese to sum candidates within the same poll
+    // (e.g. if we group by nuance, and there are multiple candidates of same nuance in one poll)
+    const firstGroupId = {
+      date: "$date",
+      type: "$type",
+      election_id: "$election_id",
+      // Include poll identifiers to group candidates from same poll together first
+      poll_id: "$poll_id",
+      hypothese: "$hypothese",
+    };
+    if (groupByField !== "nuance") firstGroupId[groupByField] = `$${groupByField}`;
+    firstGroupId.nuance = "$nuance";
 
-    if (groupByField !== "nuance") groupId[groupByField] = `$${groupByField}`;
-    groupId.nuance = "$nuance";
+    // 2nd Grouping Key: Groups by Day + Type + GroupField (aggregates multiple polls on same day)
+    const secondGroupId = {
+      date: "$_id.date",
+      type: "$_id.type",
+      election_id: "$_id.election_id",
+      nuance: "$_id.nuance",
+    };
+    if (groupByField !== "nuance") secondGroupId[groupByField] = `$_id.${groupByField}`;
 
     const pipeline = [
       { $match: matchQuery },
+      // Step 1: Sum percentages within each poll/result context
+      // This handles "Total Gauche" in one poll (sum of candidates)
+      // And handles "Total Gauche" in election result (sum of candidates)
       {
         $group: {
-          _id: groupId,
-          // Use average for polls on the same day/group to avoid > 100% sums
-          // But for election results (type="result"), sum might be appropriate if we are aggregating sub-regions (not the case here with level=national usually)
-          // Let's use $avg for percentages to be safe for polls.
-          avg_result_pourcentage_exprime: { $avg: "$result_pourcentage_exprime" },
-          sum_result_amount: { $sum: "$result_amount" },
+          _id: firstGroupId,
+          sub_result_pourcentage: { $sum: "$result_pourcentage_exprime" },
+          sub_result_amount: { $sum: "$result_amount" },
+        },
+      },
+      // Step 2: Average the totals across multiple polls on the same day
+      // This handles "Average of 3 polls on May 1st"
+      // For results, there is usually only 1 result per day, so avg(x) = x.
+      {
+        $group: {
+          _id: secondGroupId,
+          avg_result_pourcentage: { $avg: "$sub_result_pourcentage" },
+          // For amount, we also average to represent the "typical poll size" or "result size"
+          avg_result_amount: { $avg: "$sub_result_amount" },
         },
       },
       {
         $project: {
           _id: 1,
-          sum_result_pourcentage_exprime: "$avg_result_pourcentage_exprime", // Keep the name for frontend compatibility but map to avg
-          sum_result_amount: 1,
+          sum_result_pourcentage_exprime: "$avg_result_pourcentage",
+          sum_result_amount: "$avg_result_amount",
         },
       },
       { $sort: { "_id.date": 1 } },
     ];
+
     const data = await DataPoint.aggregate(pipeline);
     return res.status(200).send({ ok: true, data });
   } catch (error) {

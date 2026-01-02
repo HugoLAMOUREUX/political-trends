@@ -124,6 +124,30 @@ export default function TrendsChart() {
     })
     const sortedDates = Array.from(allDates).sort((a, b) => new Date(a.split("/").reverse().join("-")) - new Date(b.split("/").reverse().join("-")))
 
+    // Add gap before results
+    const displayDates = []
+    const resultDates = new Set()
+    Object.values(groupedData).forEach(group => {
+      group.results.forEach(r => resultDates.add(r.date))
+    })
+
+    for (let i = 0; i < sortedDates.length; i++) {
+      const currentDate = sortedDates[i]
+      const isResult = resultDates.has(currentDate)
+
+      if (isResult && i > 0) {
+        const prevDate = sortedDates[i - 1]
+        const prevIsResult = resultDates.has(prevDate)
+
+        // If transitioning from poll (or gap) to result, add a gap
+        if (!prevIsResult) {
+          // Add a gap label
+          displayDates.push(`GAP-${currentDate}`)
+        }
+      }
+      displayDates.push(currentDate)
+    }
+
     let maxValue = 0
     Object.values(groupedData).forEach(group => {
       group.polls.forEach(p => {
@@ -139,7 +163,9 @@ export default function TrendsChart() {
     Object.keys(groupedData).forEach(key => {
       const color = filters.groupBy === "nuance" ? POLITICAL_COLORS[key] || "#808080" : POLITICAL_COLORS[groupedData[key].nuance] || "#808080"
 
-      const combinedData = sortedDates.map(date => {
+      const combinedData = displayDates.map(date => {
+        if (date.startsWith("GAP-")) return null
+
         const poll = groupedData[key].polls.find(p => p.date === date)
         const result = groupedData[key].results.find(r => r.date === date)
 
@@ -152,12 +178,14 @@ export default function TrendsChart() {
         return null
       })
 
-      const pointRadius = sortedDates.map(date => {
+      const pointRadius = displayDates.map(date => {
+        if (date.startsWith("GAP-")) return 0
         const result = groupedData[key].results.find(r => r.date === date)
         return result ? 8 : 3
       })
 
-      const pointBorderWidth = sortedDates.map(date => {
+      const pointBorderWidth = displayDates.map(date => {
+        if (date.startsWith("GAP-")) return 0
         const result = groupedData[key].results.find(r => r.date === date)
         return result ? 3 : 1
       })
@@ -172,12 +200,13 @@ export default function TrendsChart() {
         pointRadius: pointRadius,
         pointBorderWidth: pointBorderWidth,
         tension: 0.3,
-        borderWidth: 2
+        borderWidth: 2,
+        spanGaps: false // Ensure null values create breaks
       })
     })
 
     setChartData({
-      labels: sortedDates,
+      labels: displayDates.map(d => (d.startsWith("GAP-") ? "" : d)),
       datasets
     })
   }
