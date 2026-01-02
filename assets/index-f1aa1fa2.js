@@ -9,7 +9,7 @@ var __publicField = (obj, key, value) => {
   return value;
 };
 var require_index_001 = __commonJS({
-  "assets/index-d5119b6d.js"(exports, module) {
+  "assets/index-f1aa1fa2.js"(exports, module) {
     var _a, _b;
     function _mergeNamespaces(n2, m2) {
       for (var i2 = 0; i2 < m2.length; i2++) {
@@ -36938,7 +36938,9 @@ ${e2 && e2.code}`);
       function processChartData(data) {
         const groupedData = {};
         data.forEach((item) => {
-          const key = filters.groupBy === "nuance" ? item._id.nuance : item._id[filters.groupBy];
+          let key = filters.groupBy === "nuance" ? item._id.nuance : item._id[filters.groupBy];
+          if (Array.isArray(key))
+            key = key.join(", ");
           const date = new Date(item._id.date).toLocaleDateString("fr-FR");
           const type = item._id.type;
           const nuance = item._id.nuance;
