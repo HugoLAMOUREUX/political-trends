@@ -9,7 +9,7 @@ var __publicField = (obj, key, value) => {
   return value;
 };
 var require_index_001 = __commonJS({
-  "assets/index-b0640d98.js"(exports, module) {
+  "assets/index-1b4045df.js"(exports, module) {
     var _a, _b;
     function _mergeNamespaces(n2, m2) {
       for (var i2 = 0; i2 < m2.length; i2++) {
@@ -36963,6 +36963,23 @@ ${e2 && e2.code}`);
           group.results.forEach((r2) => allDates.add(r2.date));
         });
         const sortedDates = Array.from(allDates).sort((a2, b2) => new Date(a2.split("/").reverse().join("-")) - new Date(b2.split("/").reverse().join("-")));
+        const displayDates = [];
+        const resultDates = /* @__PURE__ */ new Set();
+        Object.values(groupedData).forEach((group) => {
+          group.results.forEach((r2) => resultDates.add(r2.date));
+        });
+        for (let i2 = 0; i2 < sortedDates.length; i2++) {
+          const currentDate = sortedDates[i2];
+          const isResult = resultDates.has(currentDate);
+          if (isResult && i2 > 0) {
+            const prevDate = sortedDates[i2 - 1];
+            const prevIsResult = resultDates.has(prevDate);
+            if (!prevIsResult) {
+              displayDates.push(`GAP-${currentDate}`);
+            }
+          }
+          displayDates.push(currentDate);
+        }
         let maxValue = 0;
         Object.values(groupedData).forEach((group) => {
           group.polls.forEach((p2) => {
@@ -36977,7 +36994,9 @@ ${e2 && e2.code}`);
         const datasets = [];
         Object.keys(groupedData).forEach((key) => {
           const color2 = filters.groupBy === "nuance" ? POLITICAL_COLORS[key] || "#808080" : POLITICAL_COLORS[groupedData[key].nuance] || "#808080";
-          const combinedData = sortedDates.map((date) => {
+          const combinedData = displayDates.map((date) => {
+            if (date.startsWith("GAP-"))
+              return null;
             const poll = groupedData[key].polls.find((p2) => p2.date === date);
             const result = groupedData[key].results.find((r2) => r2.date === date);
             if (result)
@@ -36986,11 +37005,15 @@ ${e2 && e2.code}`);
               return poll.value;
             return null;
           });
-          const pointRadius = sortedDates.map((date) => {
+          const pointRadius = displayDates.map((date) => {
+            if (date.startsWith("GAP-"))
+              return 0;
             const result = groupedData[key].results.find((r2) => r2.date === date);
             return result ? 8 : 3;
           });
-          const pointBorderWidth = sortedDates.map((date) => {
+          const pointBorderWidth = displayDates.map((date) => {
+            if (date.startsWith("GAP-"))
+              return 0;
             const result = groupedData[key].results.find((r2) => r2.date === date);
             return result ? 3 : 1;
           });
@@ -37004,11 +37027,13 @@ ${e2 && e2.code}`);
             pointRadius,
             pointBorderWidth,
             tension: 0.3,
-            borderWidth: 2
+            borderWidth: 2,
+            spanGaps: false
+            // Ensure null values create breaks
           });
         });
         setChartData({
-          labels: sortedDates,
+          labels: displayDates.map((d2) => d2.startsWith("GAP-") ? "" : d2),
           datasets
         });
       }
