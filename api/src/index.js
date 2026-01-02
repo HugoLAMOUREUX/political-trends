@@ -17,7 +17,7 @@ if (ENVIRONMENT === "development") {
 
 require("./services/mongo");
 
-app.use(cors({ credentials: true, origin: [APP_URL, ADMIN_URL] }));
+app.use(cors({ credentials: true, origin: [APP_URL, ADMIN_URL, "https://political-trends.onrender.com/"] }));
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
