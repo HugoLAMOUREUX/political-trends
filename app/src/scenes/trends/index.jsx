@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react"
 import { Line } from "react-chartjs-2"
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js"
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, TimeScale } from "chart.js"
+import "chartjs-adapter-date-fns"
+import { fr } from "date-fns/locale"
 import toast from "react-hot-toast"
 import { HiChevronDown, HiChevronUp, HiAdjustmentsHorizontal } from "react-icons/hi2"
 import api from "@/services/api"
 import MultiSelect from "@/components/MultiSelect"
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, TimeScale)
 
 // Political colors mapping
 const POLITICAL_COLORS = {
@@ -98,115 +100,69 @@ export default function TrendsChart() {
     data.forEach(item => {
       let key = filters.groupBy === "nuance" ? item._id.nuance : item._id[filters.groupBy]
       if (Array.isArray(key)) key = key.join(", ")
-      const date = new Date(item._id.date).toLocaleDateString("fr-FR")
+      // Store raw date string (ISO) for Chart.js time scale parsing
+      const date = item._id.date
       const type = item._id.type
       const nuance = item._id.nuance
 
       if (!groupedData[key]) {
-        groupedData[key] = {
-          polls: [],
-          results: [],
-          nuance: nuance
-        }
+        groupedData[key] = []
       }
 
-      if (type === "poll") {
-        groupedData[key].polls.push({ date, value: item.sum_result_pourcentage_exprime })
-      } else {
-        groupedData[key].results.push({ date, value: item.sum_result_pourcentage_exprime })
-      }
-    })
-
-    const allDates = new Set()
-    Object.values(groupedData).forEach(group => {
-      group.polls.forEach(p => allDates.add(p.date))
-      group.results.forEach(r => allDates.add(r.date))
-    })
-    const sortedDates = Array.from(allDates).sort((a, b) => new Date(a.split("/").reverse().join("-")) - new Date(b.split("/").reverse().join("-")))
-
-    // Add gap before results
-    const displayDates = []
-    const resultDates = new Set()
-    Object.values(groupedData).forEach(group => {
-      group.results.forEach(r => resultDates.add(r.date))
-    })
-
-    for (let i = 0; i < sortedDates.length; i++) {
-      const currentDate = sortedDates[i]
-      const isResult = resultDates.has(currentDate)
-
-      if (isResult && i > 0) {
-        const prevDate = sortedDates[i - 1]
-        const prevIsResult = resultDates.has(prevDate)
-
-        // If transitioning from poll (or gap) to result, add a gap
-        if (!prevIsResult) {
-          // Add a gap label
-          displayDates.push(`GAP-${currentDate}`)
-        }
-      }
-      displayDates.push(currentDate)
-    }
-
-    let maxValue = 0
-    Object.values(groupedData).forEach(group => {
-      group.polls.forEach(p => {
-        if (p.value > maxValue) maxValue = p.value
-      })
-      group.results.forEach(r => {
-        if (r.value > maxValue) maxValue = r.value
+      groupedData[key].push({
+        x: date,
+        y: item.sum_result_pourcentage_exprime,
+        type: type,
+        nuance: nuance // Store nuance for color fallback
       })
     })
 
     const datasets = []
 
     Object.keys(groupedData).forEach(key => {
-      const color = filters.groupBy === "nuance" ? POLITICAL_COLORS[key] || "#808080" : POLITICAL_COLORS[groupedData[key].nuance] || "#808080"
+      // Color logic:
+      // 1. If grouped by nuance, use POLITICAL_COLORS directly
+      // 2. If grouped by something else, try to find the nuance of the first data point
+      // 3. Fallback to grey
+      let color = "#808080"
+      if (filters.groupBy === "nuance") {
+        color = POLITICAL_COLORS[key] || "#808080"
+      } else {
+        // Find the nuance from the first data point that has a nuance
+        const firstPointWithNuance = groupedData[key].find(p => p.nuance)
+        if (firstPointWithNuance && POLITICAL_COLORS[firstPointWithNuance.nuance]) {
+          color = POLITICAL_COLORS[firstPointWithNuance.nuance]
+        }
+      }
 
-      const combinedData = displayDates.map(date => {
-        if (date.startsWith("GAP-")) return null
-
-        const poll = groupedData[key].polls.find(p => p.date === date)
-        const result = groupedData[key].results.find(r => r.date === date)
-
-        // If we have both, prefer result or average? Usually date is unique per type.
-        // But if we have multiple polls on the same date (which should be handled by backend average now),
-        // we might still have a poll and a result on same date if data is weird.
-        // Let's just take result if available, else poll.
-        if (result) return result.value
-        if (poll) return poll.value
-        return null
-      })
-
-      const pointRadius = displayDates.map(date => {
-        if (date.startsWith("GAP-")) return 0
-        const result = groupedData[key].results.find(r => r.date === date)
-        return result ? 8 : 3
-      })
-
-      const pointBorderWidth = displayDates.map(date => {
-        if (date.startsWith("GAP-")) return 0
-        const result = groupedData[key].results.find(r => r.date === date)
-        return result ? 3 : 1
-      })
+      // Sort data by date
+      const dataPoints = groupedData[key].sort((a, b) => new Date(a.x) - new Date(b.x))
 
       datasets.push({
         label: key,
-        data: combinedData,
+        data: dataPoints,
         borderColor: color,
         backgroundColor: color,
         pointBackgroundColor: color,
         pointBorderColor: "#ffffff",
-        pointRadius: pointRadius,
-        pointBorderWidth: pointBorderWidth,
+        pointRadius: ctx => {
+          const point = ctx.raw
+          if (!point) return 0
+          return point.type === "result" ? 6 : 0
+        },
+        pointHoverRadius: ctx => {
+          const point = ctx.raw
+          if (!point) return 0
+          return point.type === "result" ? 8 : 4
+        },
+        pointBorderWidth: 2,
         tension: 0.3,
         borderWidth: 2,
-        spanGaps: false // Ensure null values create breaks
+        spanGaps: true
       })
     })
 
     setChartData({
-      labels: displayDates.map(d => (d.startsWith("GAP-") ? "" : d)),
       datasets
     })
   }
@@ -232,7 +188,9 @@ export default function TrendsChart() {
       tooltip: {
         callbacks: {
           label: function (context) {
-            return `${context.dataset.label}: ${context.parsed.y.toFixed(2)}%`
+            const point = context.raw
+            const typeLabel = point.type === "result" ? "Résultat" : "Sondage"
+            return `${context.dataset.label} (${typeLabel}): ${context.parsed.y.toFixed(2)}%`
           }
         },
         backgroundColor: "rgba(0, 0, 0, 0.8)",
@@ -248,7 +206,7 @@ export default function TrendsChart() {
     scales: {
       y: {
         beginAtZero: true,
-        max: chartData ? Math.ceil(Math.max(...chartData.datasets.flatMap(d => d.data.filter(v => v !== null))) * 1.1) : 100,
+        max: chartData ? Math.ceil(Math.max(...chartData.datasets.flatMap(d => d.data.map(v => v.y))) * 1.1) : 100,
         ticks: {
           callback: function (value) {
             return value + "%"
@@ -262,6 +220,19 @@ export default function TrendsChart() {
         }
       },
       x: {
+        type: "time",
+        time: {
+          unit: "month",
+          displayFormats: {
+            month: "MMM yyyy"
+          },
+          tooltipFormat: "dd MMMM yyyy"
+        },
+        adapters: {
+          date: {
+            locale: fr
+          }
+        },
         ticks: {
           font: {
             size: 11
@@ -275,7 +246,8 @@ export default function TrendsChart() {
       }
     },
     interaction: {
-      mode: "index",
+      mode: "nearest",
+      axis: "x",
       intersect: false
     }
   }
@@ -345,7 +317,7 @@ export default function TrendsChart() {
             </button>
           </div>
 
-          {/* Advanced Filters Panel - Always visible if showAdvancedFilters is true, but simplified logic */}
+          {/* Advanced Filters Panel */}
           {showAdvancedFilters && (
             <div className="pt-4 border-t border-gray-200">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
