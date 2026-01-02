@@ -9,7 +9,7 @@ var __publicField = (obj, key, value) => {
   return value;
 };
 var require_index_001 = __commonJS({
-  "assets/index-f1aa1fa2.js"(exports, module) {
+  "assets/index-b0640d98.js"(exports, module) {
     var _a, _b;
     function _mergeNamespaces(n2, m2) {
       for (var i2 = 0; i2 < m2.length; i2++) {
@@ -23370,7 +23370,7 @@ ${e2 && e2.code}`);
                 ] })
               ] })
             ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "border-l-4 border-indigo-500 pl-4", children: [
+            election.tour_2 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "border-l-4 border-indigo-500 pl-4", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2 mb-2", children: [
                 /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs font-semibold", children: "2ème TOUR" }),
                 /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-sm text-gray-500", children: formatDate(election.tour_2.date) })
@@ -36980,7 +36980,11 @@ ${e2 && e2.code}`);
           const combinedData = sortedDates.map((date) => {
             const poll = groupedData[key].polls.find((p2) => p2.date === date);
             const result = groupedData[key].results.find((r2) => r2.date === date);
-            return result ? result.value : poll ? poll.value : null;
+            if (result)
+              return result.value;
+            if (poll)
+              return poll.value;
+            return null;
           });
           const pointRadius = sortedDates.map((date) => {
             const result = groupedData[key].results.find((r2) => r2.date === date);
@@ -37123,7 +37127,7 @@ ${e2 && e2.code}`);
                 className: "flex items-center gap-2 px-4 py-2.5 text-sm text-blue-600 hover:text-blue-700 font-medium border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors whitespace-nowrap",
                 children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(HiAdjustmentsHorizontal, { className: "h-5 w-5" }),
-                  "Filtres avancés",
+                  "Filtres",
                   showAdvancedFilters ? /* @__PURE__ */ jsxRuntimeExports.jsx(HiChevronUp, { className: "h-4 w-4" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(HiChevronDown, { className: "h-4 w-4" })
                 ]
               }
