@@ -58,7 +58,7 @@ async function importDataPoints() {
   for (const data of datapoints) {
     const datapoint = new DataPoint(data);
     await datapoint.save();
-    console.log(`✓ ${data.candidate_name} - ${data.election_id} (${data.result_pourcentage_exprime}%)`);
+    console.log(`✓ ${data.candidate_name} - ${data.party.join(", ")} (${data.result_pourcentage_exprime}%)`);
     successCount++;
   }
 

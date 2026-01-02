@@ -13,7 +13,7 @@ const DataPointSchema = new mongoose.Schema(
     election_tour: { type: Number, enum: [1, 2], required: true, index: true },
     date: { type: Date, required: true, index: true },
     candidate_name: { type: String, required: true, index: true },
-    party: { type: String, required: true, index: true },
+    party: { type: [String], required: true, index: true },
     nuance: {
       type: String,
       required: true,

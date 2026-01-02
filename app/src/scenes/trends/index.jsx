@@ -96,7 +96,8 @@ export default function TrendsChart() {
     const groupedData = {}
 
     data.forEach(item => {
-      const key = filters.groupBy === "nuance" ? item._id.nuance : item._id[filters.groupBy]
+      let key = filters.groupBy === "nuance" ? item._id.nuance : item._id[filters.groupBy]
+      if (Array.isArray(key)) key = key.join(", ")
       const date = new Date(item._id.date).toLocaleDateString("fr-FR")
       const type = item._id.type
       const nuance = item._id.nuance

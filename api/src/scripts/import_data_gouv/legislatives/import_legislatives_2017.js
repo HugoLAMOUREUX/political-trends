@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Script to import European election 2024 data (election metadata + datapoints) to MongoDB
- * Usage: node import_europeennes_2024.js
+ * Script to import Legislative election 2017 data (election metadata + datapoints) to MongoDB
+ * Usage: node import_legislatives_2017.js
  */
 
 const path = require("path");
@@ -20,7 +20,7 @@ async function importElectionMetadata() {
   console.log("📋 Importing Election Metadata");
   console.log("=".repeat(80));
 
-  const electionFilePath = path.join(__dirname, "europeennes_2024_election.json");
+  const electionFilePath = path.join(__dirname, "legislatives_2017_election.json");
 
   if (!fs.existsSync(electionFilePath)) {
     console.error(`❌ File not found: ${electionFilePath}`);
@@ -45,6 +45,9 @@ async function importElectionMetadata() {
     console.log(
       `   - Tour 1: ${electionData.tour_1.date} (${electionData.tour_1.inscrits_amount.toLocaleString()} inscrits)`,
     );
+    console.log(
+      `   - Tour 2: ${electionData.tour_2.date} (${electionData.tour_2.inscrits_amount.toLocaleString()} inscrits)`,
+    );
     return true;
   } catch (error) {
     console.error(`❌ Error importing election:`, error.message);
@@ -57,7 +60,7 @@ async function importDataPoints() {
   console.log("🗳️  Importing Candidate DataPoints");
   console.log("=".repeat(80));
 
-  const datapointsFilePath = path.join(__dirname, "europeennes_2024_datapoints.json");
+  const datapointsFilePath = path.join(__dirname, "legislatives_2017_datapoints.json");
 
   if (!fs.existsSync(datapointsFilePath)) {
     console.error(`❌ File not found: ${datapointsFilePath}`);
@@ -70,7 +73,7 @@ async function importDataPoints() {
   console.log(`\n📊 Found ${datapoints.length} datapoints to import\n`);
 
   const deleteResult = await DataPoint.deleteMany({
-    election_id: "europeenne_2024",
+    election_id: "legislative_2017",
   });
   console.log(`🗑️  Deleted ${deleteResult.deletedCount} existing datapoints\n`);
 
@@ -81,7 +84,11 @@ async function importDataPoints() {
     try {
       const datapoint = new DataPoint(data);
       await datapoint.save();
-      console.log(`✓ ${data.candidate_name} - ${data.party.join(", ")} (${data.result_pourcentage_exprime}%)`);
+      console.log(
+        `✓ ${data.candidate_name} - ${data.party.join(", ")} T${data.election_tour} (${
+          data.result_pourcentage_exprime
+        }%)`,
+      );
       successCount++;
     } catch (error) {
       console.error(`✗ Error importing ${data.candidate_name}:`, error.message);
@@ -94,7 +101,7 @@ async function importDataPoints() {
 
 async function main() {
   console.log("=".repeat(80));
-  console.log("🗳️  EUROPEAN ELECTION 2024 - COMPLETE IMPORT");
+  console.log("🗳️  LEGISLATIVE ELECTION 2017 - COMPLETE IMPORT");
   console.log("=".repeat(80));
 
   try {

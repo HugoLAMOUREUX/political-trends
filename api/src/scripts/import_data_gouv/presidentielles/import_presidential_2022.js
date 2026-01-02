@@ -86,7 +86,7 @@ async function importDataPoints() {
     try {
       const datapoint = new DataPoint(data);
       await datapoint.save();
-      console.log(`✓ ${data.candidate_name} - ${data.election_id} (${data.result_pourcentage_exprime}%)`);
+      console.log(`✓ ${data.candidate_name} - ${data.party.join(", ")} (${data.result_pourcentage_exprime}%)`);
       successCount++;
     } catch (error) {
       console.error(`✗ Error importing ${data.candidate_name}:`, error.message);

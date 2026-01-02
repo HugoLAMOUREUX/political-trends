@@ -30,8 +30,12 @@ async function importElectionMetadata() {
   const election = new Election(electionData);
   await election.save();
   console.log(`✅ Successfully imported election: ${electionData.election_id}`);
-  console.log(`   - Tour 1: ${electionData.tour_1.date} (${electionData.tour_1.inscrits_amount.toLocaleString()} inscrits)`);
-  console.log(`   - Tour 2: ${electionData.tour_2.date} (${electionData.tour_2.inscrits_amount.toLocaleString()} inscrits)`);
+  console.log(
+    `   - Tour 1: ${electionData.tour_1.date} (${electionData.tour_1.inscrits_amount.toLocaleString()} inscrits)`,
+  );
+  console.log(
+    `   - Tour 2: ${electionData.tour_2.date} (${electionData.tour_2.inscrits_amount.toLocaleString()} inscrits)`,
+  );
 }
 
 async function importDataPoints() {
@@ -45,14 +49,16 @@ async function importDataPoints() {
 
   console.log(`\n📊 Found ${datapoints.length} datapoints to import\n`);
 
-  const deleteResult = await DataPoint.deleteMany({ election_id: { $in: ["presidentielle_2017_t1", "presidentielle_2017_t2"] } });
+  const deleteResult = await DataPoint.deleteMany({
+    election_id: { $in: ["presidentielle_2017_t1", "presidentielle_2017_t2"] },
+  });
   console.log(`🗑️  Deleted ${deleteResult.deletedCount} existing datapoints\n`);
 
   let successCount = 0;
   for (const data of datapoints) {
     const datapoint = new DataPoint(data);
     await datapoint.save();
-    console.log(`✓ ${data.candidate_name} - ${data.election_id} (${data.result_pourcentage_exprime}%)`);
+    console.log(`✓ ${data.candidate_name} - ${data.party.join(", ")} (${data.result_pourcentage_exprime}%)`);
     successCount++;
   }
 
@@ -90,4 +96,3 @@ async function main() {
 }
 
 main();
-
