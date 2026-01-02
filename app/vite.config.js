@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react"
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: process.env.ENVIRONMENT === "production" ? "/political-trends/" : "/",
+  base: "/political-trends/",
   server: {
     open: true,
     port: 3000
