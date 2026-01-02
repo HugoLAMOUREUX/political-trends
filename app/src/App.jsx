@@ -22,7 +22,7 @@ if (environment === "production") {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/political-trends/" future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         <Route element={<AuthLayout />}>
           <Route path="/auth/*" element={<Auth />} />

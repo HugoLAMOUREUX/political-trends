@@ -1,15 +1,16 @@
-import path from 'path'
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import path from "path"
+import { defineConfig } from "vite"
+import react from "@vitejs/plugin-react"
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: process.env.ENVIRONMENT === "production" ? "/political-trends/" : "/",
   server: {
     open: true,
     port: 3000
   },
   preview: {
-    host: '0.0.0.0',
+    host: "0.0.0.0",
     port: 3000
   },
   define: {
@@ -18,17 +19,17 @@ export default defineConfig({
 
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src')
+      "@": path.resolve(__dirname, "./src")
     }
   },
   build: {
     minify: false,
-    outDir: 'build'
+    outDir: "build"
   },
   esbuild: {
-    loader: 'jsx',
-    include: ['src/**/*.jsx', 'src/**/*.js'],
-    exclude: ['node_modules', 'build']
+    loader: "jsx",
+    include: ["src/**/*.jsx", "src/**/*.js"],
+    exclude: ["node_modules", "build"]
   },
   plugins: [react()]
 })
