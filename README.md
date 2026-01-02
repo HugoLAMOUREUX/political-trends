@@ -71,7 +71,7 @@ selon les filtres définis.
 
 ### Sondages
 
-- **Commission des sondages** : Données officielles
+- **Commission des sondages** : Publications officielles
 - **Wikipedia** : Répertoire des sondages historiques
 
 ### Types d'élections couverts
